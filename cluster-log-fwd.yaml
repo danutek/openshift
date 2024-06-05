@@ -1,0 +1,43 @@
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance 
+  namespace: openshift-logging 
+spec:
+  outputs:
+   - name: app-logs 
+     type: kafka 
+     url: tls://kafka.example.devlab.com:9093/app-topic 
+     secret:
+       name: kafka-secret 
+   - name: infra-logs
+     type: kafka
+     url: tcp://kafka.devlab2.example.com:9093/infra-topic 
+   - name: audit-logs
+     type: kafka
+     url: tls://kafka.qelab.example.com:9093/audit-topic
+     secret:
+        name: kafka-secret-qe
+  pipelines:
+   - name: app-topic 
+     inputRefs: 
+     - application
+     outputRefs: 
+     - app-logs
+     labels:
+       logType: "application" 
+   - name: infra-topic 
+     inputRefs:
+     - infrastructure
+     outputRefs:
+     - infra-logs
+     labels:
+       logType: "infra"
+   - name: audit-topic
+     inputRefs:
+     - audit
+     outputRefs:
+     - audit-logs
+     - default 
+     labels:
+       logType: "audit"
